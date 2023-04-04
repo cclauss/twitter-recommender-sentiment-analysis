@@ -8,16 +8,37 @@ on:
 
 jobs:
   sentiment_analysis:
+    env:
+      ACCESS_KEY: ${{ secrets.ACCESS_KEY }}
     runs-on: ubuntu-latest
 
     steps:
     - name: Checkout repository
       uses: actions/checkout@v3
 
+    - shell: python
+      run: "import os ; print(list(os.environ))"
+
     - env:
         ACCESS_KEY: ${{ secrets.ACCESS_KEY }}
       shell: python
-      run: "import os ; assert os.getenv('ACCESS_KEY')"
+      run: "import os ; print(list(os.environ))"
+
+      
+    - if: ${{ env.ACCESS_KEY != '' }}
+      run: echo 'This step will only run if the secret has a value set.'
+    - if: ${{ env.ACCESS_KEY == '' }}
+      run: echo 'This step will only run if the secret does not have a value set.'
+
+    - env:
+        ACCESS_KEY: ${{ secrets.ACCESS_KEY }}
+      if: ${{ github.event_name == 'pull_request' && github.event.action == 'unassigned' }}
+      run: echo This event is a pull request that had an assignee removed.
+   
+   - env:
+        ACCESS_KEY: ${{ secrets.ACCESS_KEY }}
+      shell: python
+      run: "import os ; print(os.environ) ; assert os.getenv('ACCESS_KEY') or os.getenv('ACCESS_KEY')"
 
     - name: Setup Python environment
       uses: actions/setup-python@v4
